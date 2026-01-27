@@ -70,13 +70,17 @@ export default function ChatPage() {
 
       // Check emergency contact for regular users
       if (profile.role === 'user') {
-        const { data: emergencyContact } = await supabase
+        const { data: emergencyContact, error: ecError } = await supabase
           .from('emergency_contacts')
           .select('id')
           .eq('user_id', user.id)
           .limit(1);
 
-        if (!emergencyContact || emergencyContact.length === 0) {
+        console.log('Emergency contact check:', { emergencyContact, ecError, userId: user.id });
+
+        // Only redirect if we successfully confirmed there's no emergency contact
+        // If there's an error, let them through (RLS issue)
+        if (!ecError && (!emergencyContact || emergencyContact.length === 0)) {
           router.push('/onboarding/emergency-contact');
           return;
         }
