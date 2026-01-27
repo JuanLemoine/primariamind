@@ -47,6 +47,13 @@ export function useChat(options: UseChatOptions = {}) {
 
   // Load conversation messages
   const loadMessages = useCallback(async (convId: string) => {
+    if (!convId) {
+      setState(prev => ({ ...prev, loading: false }));
+      return;
+    }
+
+    setState(prev => ({ ...prev, loading: true, error: null }));
+
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -54,18 +61,22 @@ export function useChat(options: UseChatOptions = {}) {
         .eq('conversation_id', convId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error loading messages:', error.message, error.code);
+        throw error;
+      }
 
       setState(prev => ({
         ...prev,
         messages: data || [],
         loading: false,
       }));
-    } catch (err: any) {
-      console.error('Error loading messages:', err);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      console.error('Error loading messages:', errorMessage);
       setState(prev => ({
         ...prev,
-        error: 'Error al cargar los mensajes',
+        error: `Error al cargar los mensajes: ${errorMessage}`,
         loading: false,
       }));
     }
