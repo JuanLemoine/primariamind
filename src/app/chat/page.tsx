@@ -55,14 +55,40 @@ export default function ChatPage() {
         return;
       }
 
-      // Get user profile
+      // Get user profile and check onboarding status
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, consent_accepted, role')
         .eq('id', user.id)
         .single();
 
-      if (profile?.full_name) {
+      // Check if user needs to complete onboarding
+      if (!profile || !profile.consent_accepted) {
+        router.push('/consent');
+        return;
+      }
+
+      // Check emergency contact for regular users
+      if (profile.role === 'user') {
+        const { data: emergencyContact } = await supabase
+          .from('emergency_contacts')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        if (!emergencyContact || emergencyContact.length === 0) {
+          router.push('/onboarding/emergency-contact');
+          return;
+        }
+      }
+
+      // Redirect therapists to their dashboard
+      if (profile.role === 'therapist') {
+        router.push('/therapist');
+        return;
+      }
+
+      if (profile.full_name) {
         setUserName(profile.full_name);
       }
 
