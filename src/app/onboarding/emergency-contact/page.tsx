@@ -1,20 +1,49 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Logo } from '@/components/layout';
 import { Button, Input, Checkbox, Card, CardHeader, CardTitle, CardDescription, CardContent, Alert } from '@/components/ui';
 import { emergencyContactSchema } from '@/lib/validations';
 import { z } from 'zod';
-import { UserPlus, Heart, AlertCircle } from 'lucide-react';
+import { UserPlus, Heart, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function EmergencyContactPage() {
   const router = useRouter();
   const supabase = createClient();
 
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Check if user already has emergency contact - if so, redirect to chat
+  useEffect(() => {
+    async function checkExistingContact() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/auth');
+        return;
+      }
+
+      const { data: existingContact } = await supabase
+        .from('emergency_contacts')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      // If user already has a contact, redirect to chat
+      if (existingContact && existingContact.length > 0) {
+        router.push('/chat');
+        return;
+      }
+
+      setChecking(false);
+    }
+
+    checkExistingContact();
+  }, [supabase, router]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -110,6 +139,15 @@ export default function EmergencyContactPage() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-gray-50 to-gray-100">

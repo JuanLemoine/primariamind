@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Logo } from '@/components/layout';
@@ -20,6 +20,7 @@ export default function ConsentPage() {
   const supabase = createClient();
 
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<LocationData>({
     country: '',
@@ -28,6 +29,34 @@ export default function ConsentPage() {
     error: null,
     granted: false,
   });
+
+  // Check if user already accepted consent - if so, redirect to chat
+  useEffect(() => {
+    async function checkConsent() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/auth');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('consent_accepted')
+        .eq('id', user.id)
+        .single();
+
+      // If consent already accepted, redirect to chat
+      if (profile?.consent_accepted) {
+        router.push('/chat');
+        return;
+      }
+
+      setChecking(false);
+    }
+
+    checkConsent();
+  }, [supabase, router]);
 
   const requestGeolocation = async () => {
     if (!navigator.geolocation) {
@@ -164,6 +193,15 @@ export default function ConsentPage() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-gray-50 to-gray-100">
