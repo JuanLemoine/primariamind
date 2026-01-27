@@ -21,6 +21,7 @@ export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [bookingAppointment, setBookingAppointment] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const {
     messages,
@@ -47,6 +48,9 @@ export default function ChatPage() {
 
   // Load user info and conversations
   useEffect(() => {
+    // Prevent multiple initializations
+    if (initialized) return;
+
     async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -76,10 +80,8 @@ export default function ChatPage() {
           .eq('user_id', user.id)
           .limit(1);
 
-        console.log('Emergency contact check:', { emergencyContact, ecError, userId: user.id });
-
         // Only redirect if we successfully confirmed there's no emergency contact
-        // If there's an error, let them through (RLS issue)
+        // If there's an error or contact exists, let them through
         if (!ecError && (!emergencyContact || emergencyContact.length === 0)) {
           router.push('/onboarding/emergency-contact');
           return;
@@ -91,6 +93,9 @@ export default function ChatPage() {
         router.push('/therapist');
         return;
       }
+
+      // Mark as initialized - user passed all checks
+      setInitialized(true);
 
       if (profile.full_name) {
         setUserName(profile.full_name);
@@ -113,7 +118,7 @@ export default function ChatPage() {
     }
 
     loadData();
-  }, [supabase, router]);
+  }, [supabase, router, initialized]);
 
   // Update conversationId when chat creates a new one
   useEffect(() => {
