@@ -50,29 +50,47 @@ export async function updateSession(request: NextRequest) {
 
   // If logged in, check profile and consent
   if (user && !isPublicRoute && path !== '/consent' && path !== '/onboarding/emergency-contact') {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('consent_accepted, role')
       .eq('id', user.id)
       .single();
 
+    // If there's an error fetching profile (RLS issue), let them through to avoid loops
+    if (profileError) {
+      console.error('Middleware profile fetch error:', profileError.message);
+      return supabaseResponse;
+    }
+
+    // If no profile exists, redirect to consent to create one
+    if (!profile) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/consent';
+      return NextResponse.redirect(url);
+    }
+
     // Redirect to consent if not accepted
-    if (profile && !profile.consent_accepted && path !== '/consent') {
+    if (!profile.consent_accepted) {
       const url = request.nextUrl.clone();
       url.pathname = '/consent';
       return NextResponse.redirect(url);
     }
 
     // Check emergency contact for users (not therapists)
-    if (profile && profile.consent_accepted && profile.role === 'user') {
-      const { data: emergencyContact } = await supabase
+    if (profile.role === 'user') {
+      const { data: emergencyContact, error: ecError } = await supabase
         .from('emergency_contacts')
         .select('id')
         .eq('user_id', user.id)
         .limit(1);
 
-      if ((!emergencyContact || emergencyContact.length === 0) &&
-          path !== '/onboarding/emergency-contact') {
+      // If error fetching emergency contacts, let them through
+      if (ecError) {
+        console.error('Middleware emergency contact fetch error:', ecError.message);
+        return supabaseResponse;
+      }
+
+      if (!emergencyContact || emergencyContact.length === 0) {
         const url = request.nextUrl.clone();
         url.pathname = '/onboarding/emergency-contact';
         return NextResponse.redirect(url);
@@ -80,20 +98,18 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Role-based routing
-    if (profile) {
-      // Therapists can't access user chat
-      if (profile.role === 'therapist' && path.startsWith('/chat')) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/therapist';
-        return NextResponse.redirect(url);
-      }
+    // Therapists can't access user chat
+    if (profile.role === 'therapist' && path.startsWith('/chat')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/therapist';
+      return NextResponse.redirect(url);
+    }
 
-      // Users can't access therapist panel
-      if (profile.role === 'user' && path.startsWith('/therapist')) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/chat';
-        return NextResponse.redirect(url);
-      }
+    // Users can't access therapist panel
+    if (profile.role === 'user' && path.startsWith('/therapist')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/chat';
+      return NextResponse.redirect(url);
     }
   }
 
