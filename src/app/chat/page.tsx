@@ -112,9 +112,33 @@ export default function ChatPage() {
     router.refresh();
   };
 
-  const handleNewConversation = () => {
-    setActiveConversationId(null);
+  const [creatingConversation, setCreatingConversation] = useState(false);
+
+  const handleNewConversation = async () => {
+    setCreatingConversation(true);
     setSidebarOpen(false);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Create new conversation immediately
+      const { data: newConv, error } = await supabase
+        .from('conversations')
+        .insert({ user_id: user.id, status: 'active' })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to list and select it
+      setConversations(prev => [newConv as Conversation, ...prev]);
+      setActiveConversationId(newConv.id);
+    } catch (err) {
+      console.error('Error creating conversation:', err);
+    } finally {
+      setCreatingConversation(false);
+    }
   };
 
   const handleSelectConversation = (id: string) => {
@@ -177,8 +201,13 @@ export default function ChatPage() {
               variant="primary"
               className="w-full"
               onClick={handleNewConversation}
+              disabled={creatingConversation}
             >
-              <MessageSquarePlus className="w-4 h-4" />
+              {creatingConversation ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <MessageSquarePlus className="w-4 h-4" />
+              )}
               Nueva conversación
             </Button>
           </div>
