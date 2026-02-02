@@ -94,6 +94,12 @@ export default function ChatPage() {
         return;
       }
 
+      // Redirect admins to admin dashboard
+      if (profile.role === 'admin') {
+        router.push('/admin');
+        return;
+      }
+
       // Mark as initialized - user passed all checks
       setInitialized(true);
 

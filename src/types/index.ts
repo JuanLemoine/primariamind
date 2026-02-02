@@ -31,7 +31,7 @@ export interface ConsentForm {
 export interface SessionUser {
   id: string;
   email: string;
-  role: 'user' | 'therapist';
+  role: 'user' | 'therapist' | 'admin';
   full_name: string | null;
   consent_accepted: boolean;
   has_emergency_contact: boolean;

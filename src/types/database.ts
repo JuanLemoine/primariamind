@@ -1,7 +1,7 @@
 // Database types for Supabase
 // These match the SQL schema defined in supabase/migrations
 
-export type UserRole = 'user' | 'therapist';
+export type UserRole = 'user' | 'therapist' | 'admin';
 
 export type ConversationStatus = 'active' | 'closed' | 'referred';
 
