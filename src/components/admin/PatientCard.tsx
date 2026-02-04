@@ -16,6 +16,7 @@ interface PatientCardProps {
     latest_risk_level: string | null;
     latest_summary: string | null;
     latest_tags: string[];
+    conversation_topics: string[];
     open_referrals: number;
     has_high_priority: boolean;
   };
@@ -66,8 +67,21 @@ export function PatientCard({ patient }: PatientCardProps) {
           </div>
         </div>
 
+        {patient.conversation_topics.length > 0 && (
+          <div className="mt-3">
+            <p className="text-xs text-gray-400 mb-1">Temas de conversación:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {patient.conversation_topics.map((topic, i) => (
+                <span key={i} className="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded-full border border-blue-100">
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {patient.latest_summary && (
-          <p className="text-sm text-gray-600 mt-3 line-clamp-2">
+          <p className="text-sm text-gray-600 mt-2 line-clamp-2">
             {patient.latest_summary}
           </p>
         )}

@@ -42,7 +42,7 @@ export async function GET() {
     // Get conversations grouped by user
     const { data: conversations } = await adminClient
       .from('conversations')
-      .select('id, user_id, status, updated_at')
+      .select('id, user_id, status, title, updated_at')
       .in('user_id', patientIds)
       .order('updated_at', { ascending: false });
 
@@ -83,6 +83,11 @@ export async function GET() {
       const userReferrals = (referrals || []).filter(r => r.user_id === patient.id);
       const openReferrals = userReferrals.filter(r => r.status === 'open' || r.status === 'assigned');
 
+      // Get conversation topics (titles)
+      const conversation_topics = userConvs
+        .filter(c => c.title)
+        .map(c => c.title as string);
+
       return {
         ...patient,
         conversation_count: userConvs.length,
@@ -91,6 +96,7 @@ export async function GET() {
         latest_risk_level: latestInsight?.risk_level || null,
         latest_summary: latestInsight?.summary || null,
         latest_tags: latestInsight?.tags || [],
+        conversation_topics,
         emergency_contact: emergencyContact,
         open_referrals: openReferrals.length,
         has_high_priority: userReferrals.some(r => r.priority === 'high'),

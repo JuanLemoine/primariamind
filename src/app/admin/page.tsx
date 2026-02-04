@@ -20,6 +20,7 @@ interface PatientData {
   latest_risk_level: string | null;
   latest_summary: string | null;
   latest_tags: string[];
+  conversation_topics: string[];
   open_referrals: number;
   has_high_priority: boolean;
 }

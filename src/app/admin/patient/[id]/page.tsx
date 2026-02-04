@@ -12,6 +12,7 @@ import {
 
 interface ConversationDetail {
   id: string;
+  title: string | null;
   status: string;
   created_at: string;
   updated_at: string;
@@ -387,22 +388,27 @@ export default function PatientDetailPage() {
                     onClick={() => toggleConversation(conv.id)}
                     className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        conv.status === 'active' ? 'bg-green-100 text-green-700' :
-                        conv.status === 'referred' ? 'bg-purple-100 text-purple-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {statusLabels[conv.status] || conv.status}
+                    <div className="flex flex-col items-start gap-1.5">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {conv.title || 'Sin tema identificado'}
                       </span>
-                      <span className="text-sm text-gray-700">
-                        {conv.message_count} mensajes
-                      </span>
-                      {conv.latest_insight && (
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${riskColors[conv.latest_insight.risk_level] || 'bg-gray-100 text-gray-700'}`}>
-                          {conv.latest_insight.risk_level}
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                          conv.status === 'active' ? 'bg-green-100 text-green-700' :
+                          conv.status === 'referred' ? 'bg-purple-100 text-purple-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {statusLabels[conv.status] || conv.status}
                         </span>
-                      )}
+                        <span className="text-xs text-gray-500">
+                          {conv.message_count} mensajes
+                        </span>
+                        {conv.latest_insight && (
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${riskColors[conv.latest_insight.risk_level] || 'bg-gray-100 text-gray-700'}`}>
+                            {conv.latest_insight.risk_level}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 flex items-center gap-1">
