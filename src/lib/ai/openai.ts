@@ -164,3 +164,38 @@ Responde ÚNICAMENTE con el JSON de insights:`;
     };
   }
 }
+
+/**
+ * Generate a short title for a conversation based on the user's topic
+ */
+export async function generateConversationTitle(
+  messages: Message[]
+): Promise<string> {
+  const conversation = messages.map(m =>
+    `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`
+  ).join('\n');
+
+  try {
+    const response = await getOpenAI().chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: 'Eres un sistema que genera títulos cortos para conversaciones de salud mental. Responde SOLO con el título, sin comillas ni puntuación final. El título debe describir el motivo principal o tema de consulta del usuario en máximo 5 palabras. Ejemplos: "Estrés laboral y agotamiento", "Ansiedad por exámenes", "Problemas familiares", "Dificultad para dormir", "Tristeza y soledad".',
+        },
+        {
+          role: 'user',
+          content: `Genera un título corto para esta conversación:\n\n${conversation}`,
+        },
+      ],
+      max_tokens: 30,
+      temperature: 0.3,
+    });
+
+    const title = response.choices[0]?.message?.content?.trim();
+    return title || 'Conversación';
+  } catch (error) {
+    console.error('Title generation error:', error);
+    return 'Conversación';
+  }
+}

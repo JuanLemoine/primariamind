@@ -43,7 +43,7 @@ export function CaseCard({ referral }: CaseCardProps) {
                   {referral.user_profile?.full_name || 'Usuario'}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  Caso #{referral.id.slice(0, 8)}
+                  {referral.conversation?.title || `Caso #${referral.id.slice(0, 8)}`}
                 </p>
               </div>
             </div>

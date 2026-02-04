@@ -137,6 +137,7 @@ export default function ChatPage() {
           return [{
             id: conversationId,
             user_id: '',
+            title: null,
             status: 'active',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -146,6 +147,27 @@ export default function ChatPage() {
       });
     }
   }, [conversationId, activeConversationId]);
+
+  // Refresh conversation title after sending a message
+  useEffect(() => {
+    if (!sending && activeConversationId) {
+      // Small delay to allow the API to finish saving the title
+      const timer = setTimeout(async () => {
+        const { data: conv } = await supabase
+          .from('conversations')
+          .select('title')
+          .eq('id', activeConversationId)
+          .single();
+
+        if (conv?.title) {
+          setConversations(prev =>
+            prev.map(c => c.id === activeConversationId ? { ...c, title: conv.title } : c)
+          );
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [sending, activeConversationId, supabase]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -278,7 +300,7 @@ export default function ChatPage() {
                     `}
                   >
                     <div className="font-medium truncate">
-                      Conversación
+                      {conv.title || 'Nueva conversación'}
                     </div>
                     <div className="text-xs text-gray-500">
                       {new Date(conv.updated_at).toLocaleDateString('es-CO', {

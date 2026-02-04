@@ -1,1 +1,1 @@
-export { generateChatResponse, performTriage, generateInsights } from './openai';
+export { generateChatResponse, performTriage, generateInsights, generateConversationTitle } from './openai';

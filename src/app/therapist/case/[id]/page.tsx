@@ -234,7 +234,7 @@ export default function CaseDetailPage() {
             <Logo size="sm" showText={false} />
             <span className="text-sm text-gray-500">|</span>
             <span className="text-sm font-medium text-gray-700">
-              Caso #{referral.id.slice(0, 8)}
+              {referral.conversation?.title || `Caso #${referral.id.slice(0, 8)}`}
             </span>
           </div>
 

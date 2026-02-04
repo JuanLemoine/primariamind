@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { generateChatResponse, performTriage, generateInsights } from '@/lib/ai';
+import { generateChatResponse, performTriage, generateInsights, generateConversationTitle } from '@/lib/ai';
 import { sendMessageSchema } from '@/lib/validations';
 import { getEmergencyLines, formatEmergencyMessage, getEmergencyNotificationMessage } from '@/lib/utils';
 import { Message, SendMessageResponse } from '@/types';
@@ -281,10 +281,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update conversation timestamp
+    // Generate title on first user message (when there were no previous messages)
+    const updateData: Record<string, string> = { updated_at: new Date().toISOString() };
+
+    if (messages.length === 0) {
+      // First message in conversation — generate title based on topic
+      const titleMessages: Message[] = [
+        { id: 'temp', conversation_id: conversationId!, role: 'user', content: validated.content, created_at: new Date().toISOString() },
+        { id: 'temp2', conversation_id: conversationId!, role: 'assistant', content: chatResponse, created_at: new Date().toISOString() },
+      ];
+      const title = await generateConversationTitle(titleMessages);
+      updateData.title = title;
+    }
+
+    // Update conversation timestamp (and title if first message)
     await adminClient
       .from('conversations')
-      .update({ updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq('id', conversationId);
 
     return NextResponse.json(response);
