@@ -50,6 +50,9 @@ interface PatientDetail {
     full_name: string | null;
     country: string | null;
     city: string | null;
+    age_range: string | null;
+    gender: string | null;
+    education_level: string | null;
     consent_accepted: boolean;
     created_at: string;
     updated_at: string;
@@ -241,6 +244,24 @@ export default function PatientDetailPage() {
                   <span className="text-gray-500">Referrals</span>
                   <span className="text-gray-900">{referrals.length}</span>
                 </div>
+                {patient.age_range && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Edad</span>
+                    <span className="text-gray-900">{patient.age_range} años</span>
+                  </div>
+                )}
+                {patient.gender && patient.gender !== 'prefiero_no_decir' && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Género</span>
+                    <span className="text-gray-900 capitalize">{patient.gender.replace('_', ' ')}</span>
+                  </div>
+                )}
+                {patient.education_level && patient.education_level !== 'prefiero_no_decir' && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Escolaridad</span>
+                    <span className="text-gray-900 capitalize">{patient.education_level}</span>
+                  </div>
+                )}
               </div>
             </div>
 

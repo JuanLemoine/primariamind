@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     // Get user profile for location info (use admin client to avoid RLS issues)
     const { data: profile } = await adminClient
       .from('profiles')
-      .select('full_name, country, city')
+      .select('full_name, country, city, age_range, gender, education_level')
       .eq('id', user.id)
       .single();
 
@@ -92,9 +92,19 @@ export async function POST(request: NextRequest) {
       console.error('Error saving user message:', userMsgError);
     }
 
+    // Build user context for personalized responses
+    const userContext = {
+      name: profile?.full_name || null,
+      country: profile?.country || null,
+      city: profile?.city || null,
+      age_range: profile?.age_range || null,
+      gender: profile?.gender || null,
+      education_level: profile?.education_level || null,
+    };
+
     // Perform triage analysis (parallel with chat response)
     const [chatResponse, triageResult] = await Promise.all([
-      generateChatResponse(messages, validated.content),
+      generateChatResponse(messages, validated.content, userContext),
       performTriage(messages, validated.content),
     ]);
 

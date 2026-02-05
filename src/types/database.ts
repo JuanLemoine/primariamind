@@ -22,12 +22,19 @@ export type NotificationChannel = 'sms' | 'whatsapp' | 'email';
 export type NotificationStatus = 'pending' | 'sent' | 'failed';
 
 // Database row types
+export type AgeRange = '13-17' | '18-24' | '25-34' | '35-44' | '45-54' | '55-64' | '65+';
+export type Gender = 'masculino' | 'femenino' | 'no_binario' | 'prefiero_no_decir';
+export type EducationLevel = 'primaria' | 'secundaria' | 'tecnico' | 'universitario' | 'posgrado' | 'prefiero_no_decir';
+
 export interface Profile {
   id: string;
   role: UserRole;
   full_name: string | null;
   country: string | null;
   city: string | null;
+  age_range: AgeRange | null;
+  gender: Gender | null;
+  education_level: EducationLevel | null;
   consent_accepted: boolean;
   consent_accepted_at: string | null;
   created_at: string;

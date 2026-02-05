@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Logo } from '@/components/layout';
 import { Button, Card, CardContent, Alert } from '@/components/ui';
-import { Shield, AlertTriangle, FileText, MapPin, Loader2, CheckCircle } from 'lucide-react';
+import { Shield, AlertTriangle, FileText, MapPin, Loader2, CheckCircle, UserCircle } from 'lucide-react';
 
 interface LocationData {
   country: string;
@@ -13,6 +13,12 @@ interface LocationData {
   loading: boolean;
   error: string | null;
   granted: boolean;
+}
+
+interface DemographicData {
+  age_range: string;
+  gender: string;
+  education_level: string;
 }
 
 export default function ConsentPage() {
@@ -28,6 +34,11 @@ export default function ConsentPage() {
     loading: false,
     error: null,
     granted: false,
+  });
+  const [demographics, setDemographics] = useState<DemographicData>({
+    age_range: '',
+    gender: '',
+    education_level: '',
   });
 
   // Check if user already accepted consent - if so, redirect to chat
@@ -175,6 +186,9 @@ export default function ConsentPage() {
         body: JSON.stringify({
           country: location.country || null,
           city: location.city || null,
+          age_range: demographics.age_range || null,
+          gender: demographics.gender || null,
+          education_level: demographics.education_level || null,
         }),
       });
 
@@ -329,6 +343,82 @@ export default function ConsentPage() {
                         )}
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Demographic Data */}
+              <div className="border border-gray-200 bg-gray-50 rounded-lg p-4">
+                <div className="flex gap-3">
+                  <UserCircle className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      Datos demográficos (opcional)
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Esta información nos ayuda a brindarte una orientación más personalizada.
+                    </p>
+
+                    <div className="space-y-4">
+                      {/* Age Range */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Rango de edad
+                        </label>
+                        <select
+                          value={demographics.age_range}
+                          onChange={(e) => setDemographics(prev => ({ ...prev, age_range: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="13-17">13 - 17 años</option>
+                          <option value="18-24">18 - 24 años</option>
+                          <option value="25-34">25 - 34 años</option>
+                          <option value="35-44">35 - 44 años</option>
+                          <option value="45-54">45 - 54 años</option>
+                          <option value="55-64">55 - 64 años</option>
+                          <option value="65+">65+ años</option>
+                        </select>
+                      </div>
+
+                      {/* Gender */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Género
+                        </label>
+                        <select
+                          value={demographics.gender}
+                          onChange={(e) => setDemographics(prev => ({ ...prev, gender: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="masculino">Masculino</option>
+                          <option value="femenino">Femenino</option>
+                          <option value="no_binario">No binario</option>
+                          <option value="prefiero_no_decir">Prefiero no decir</option>
+                        </select>
+                      </div>
+
+                      {/* Education Level */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Nivel de escolaridad
+                        </label>
+                        <select
+                          value={demographics.education_level}
+                          onChange={(e) => setDemographics(prev => ({ ...prev, education_level: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="primaria">Primaria</option>
+                          <option value="secundaria">Secundaria / Bachillerato</option>
+                          <option value="tecnico">Técnico / Tecnológico</option>
+                          <option value="universitario">Universitario</option>
+                          <option value="posgrado">Posgrado</option>
+                          <option value="prefiero_no_decir">Prefiero no decir</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

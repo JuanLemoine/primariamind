@@ -22,15 +22,63 @@ interface ChatMessage {
   content: string;
 }
 
+interface UserContext {
+  name: string | null;
+  country: string | null;
+  city: string | null;
+  age_range: string | null;
+  gender: string | null;
+  education_level: string | null;
+}
+
+/**
+ * Build a user context string to append to the system prompt
+ */
+function buildUserContextPrompt(context: UserContext): string {
+  const parts: string[] = [];
+
+  if (context.name) parts.push(`Nombre: ${context.name}`);
+  if (context.age_range) parts.push(`Edad: ${context.age_range} años`);
+  if (context.gender && context.gender !== 'prefiero_no_decir') {
+    const genderLabels: Record<string, string> = {
+      masculino: 'Masculino',
+      femenino: 'Femenino',
+      no_binario: 'No binario',
+    };
+    parts.push(`Género: ${genderLabels[context.gender] || context.gender}`);
+  }
+  if (context.education_level && context.education_level !== 'prefiero_no_decir') {
+    const eduLabels: Record<string, string> = {
+      primaria: 'Primaria',
+      secundaria: 'Secundaria',
+      tecnico: 'Técnico/Tecnológico',
+      universitario: 'Universitario',
+      posgrado: 'Posgrado',
+    };
+    parts.push(`Escolaridad: ${eduLabels[context.education_level] || context.education_level}`);
+  }
+  if (context.country || context.city) {
+    const location = [context.city, context.country].filter(Boolean).join(', ');
+    parts.push(`Ubicación: ${location}`);
+  }
+
+  if (parts.length === 0) return '';
+
+  return `\n\n## CONTEXTO DEL USUARIO\n${parts.join('\n')}\n\nUsa esta información para personalizar tu respuesta — adapta tu lenguaje a su edad y nivel educativo, y ten en cuenta su contexto. NO menciones estos datos directamente a menos que sean relevantes para la conversación.`;
+}
+
 /**
  * Generate a chat response from the AI assistant
  */
 export async function generateChatResponse(
   messages: Message[],
-  userMessage: string
+  userMessage: string,
+  userContext?: UserContext
 ): Promise<string> {
+  const systemPrompt = SYSTEM_PROMPT + (userContext ? buildUserContextPrompt(userContext) : '');
+
   const chatMessages: ChatMessage[] = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: systemPrompt },
     ...messages.slice(-10).map(m => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,

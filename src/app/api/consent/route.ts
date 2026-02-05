@@ -18,7 +18,17 @@ export async function POST(request: NextRequest) {
 
     // Parse the request body
     const body = await request.json();
-    const { country, city } = body;
+    const { country, city, age_range, gender, education_level } = body;
+
+    const profileData = {
+      consent_accepted: true,
+      consent_accepted_at: new Date().toISOString(),
+      country: country || null,
+      city: city || null,
+      age_range: age_range || null,
+      gender: gender || null,
+      education_level: education_level || null,
+    };
 
     // First, check if profile exists
     const { data: existingProfile } = await adminClient
@@ -28,15 +38,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingProfile) {
-      // Profile exists, update it
       const { error: updateError } = await adminClient
         .from('profiles')
-        .update({
-          consent_accepted: true,
-          consent_accepted_at: new Date().toISOString(),
-          country: country || null,
-          city: city || null,
-        })
+        .update(profileData)
         .eq('id', user.id);
 
       if (updateError) {
@@ -44,16 +48,12 @@ export async function POST(request: NextRequest) {
         throw updateError;
       }
     } else {
-      // Profile doesn't exist, create it
       const { error: insertError } = await adminClient
         .from('profiles')
         .insert({
           id: user.id,
           full_name: user.user_metadata?.full_name || null,
-          consent_accepted: true,
-          consent_accepted_at: new Date().toISOString(),
-          country: country || null,
-          city: city || null,
+          ...profileData,
         });
 
       if (insertError) {
