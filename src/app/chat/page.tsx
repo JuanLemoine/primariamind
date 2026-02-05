@@ -7,7 +7,7 @@ import { Logo } from '@/components/layout';
 import { Button, Alert } from '@/components/ui';
 import { ChatMessage, ChatInput, CrisisAlert, AppointmentOffer } from '@/components/chat';
 import { useChat } from '@/hooks/useChat';
-import { LogOut, MessageSquarePlus, Menu, X, Loader2 } from 'lucide-react';
+import { LogOut, MessageSquarePlus, Menu, X, Loader2, UserCircle } from 'lucide-react';
 import { Conversation } from '@/types';
 
 export default function ChatPage() {
@@ -239,6 +239,10 @@ export default function ChatPage() {
           <span className="text-sm text-gray-600 hidden sm:block">
             Hola, {userName || 'Usuario'}
           </span>
+          <Button variant="ghost" size="sm" onClick={() => router.push('/profile')}>
+            <UserCircle className="w-4 h-4" />
+            <span className="hidden sm:inline">Mi perfil</span>
+          </Button>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">Salir</span>
